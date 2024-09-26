@@ -3,7 +3,7 @@ Uses ntfy to send a push notification when their password cracking is done
 
 ## Install
 ```bash
-wget -O installer.sh https://github.com/BrohdeXC/ntfy-crack && chmod +x installer.sh  && ./installer.sh
+wget https://github.com/BrohdeXC/ntfycrack/raw/refs/heads/main/installer.sh && chmod +x installer.sh  && ./installer.sh
 ```
 
 ## Usage
