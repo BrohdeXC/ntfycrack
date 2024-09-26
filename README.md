@@ -25,8 +25,13 @@ Version 0.1.0     NTFY Cracking Alerts     By: BrohdeXC
 -------------------------------------------------------
 ```
 
-## Known Issues and Future Plans
+## Known Issues and Planned Updates
 Planned: Add catches for inproper user inputs, unknown files, and unknown hashtypes  
 
 ## Changelog
 v0.1.0 - Created ntfycrack  
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first
+to discuss what you would like to change.  
