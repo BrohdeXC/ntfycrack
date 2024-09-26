@@ -1,0 +1,154 @@
+#!/bin/bash
+
+# Variables, Paths, Versions
+repeat=1
+VN="0.1.0" # Version Number
+filepath="$(dirname "$(readlink -f "$0")")" # Path of program file
+logpath="$filepath/.ntfycracklogs/"
+userpath="$(pwd)" # Path of working directory
+server="$(grep "Server" $filepath/.ntfycrackconfig.txt | cut -d ' ' -f 2)"
+topic="$(grep "Topic" $filepath/.ntfycrackconfig.txt | cut -d ' ' -f 2)"
+
+# Default Settings
+
+# ASCII art because it makes me want to use it more
+function asciilogo {
+echo '
+ _     _____  ____  _     __    ___    __    __    _    
+| |\ |  | |  | |_  \ \_/ / /`  | |_)  / /\  / /`  | |_/ 
+|_| \|  |_|  |_|    |_|  \_\_, |_| \ /_/--\ \_\_, |_| \
+Version '$VN'  	  NTFY Cracking Alerts	   By: BrohdeXC	
+-------------------------------------------------------'
+}
+
+# Tool Selection
+function asciiprompt {
+	echo '	1) Hashcat
+	2) JohnTheRipper
+	3) Options
+	4) Exit
+-------------------------------------------------------'
+	read -p 'Please make a selection: ' choice
+}
+
+function asciioptions {
+	echo "Subscribed Topic: $server/$topic
+-------------------------------------------------------
+	1) nano $filepath/.ntfycrackconfig.txt
+	2) vim $filepath/.ntfycrackconfig.txt
+	3) Exit
+-------------------------------------------------------"
+	read -p "Please make a selection (1-3): " optionchoice
+}
+
+# Main Function
+function main {
+	while [[ $repeat -eq 1 ]]; do
+		clear
+		asciilogo
+		asciiprompt	
+		# User selection of which program to run
+		if (($choice == 1)); then
+			clear
+			asciilogo
+			ntfyhashcat
+			repeat
+		elif (($choice == 2)); then
+			clear
+			asciilogo
+			ntfyjohn
+			repeat
+		elif (($choice == 3)); then
+			clear
+			asciilogo
+			options
+		elif (($choice == 4)); then
+			echo Thanks for using ntfyCrack!
+			sleep .75
+			clear
+			repeat=0
+		else
+			echo 'Invalid Response, Please make a selection (1-3); '
+		fi
+	done
+}
+
+function ntfyhashcat {
+	read -p "Enter the Hash-Mode: " mode
+	read -p "Enter the Attack Type: " attack
+	read -p "Enter the Hash/Hashfile: " hashes
+	read -p "Enter the Wordlist/Mask: " wordlist
+	echo "Starting to crack passwords, I'll text you when I'm done"
+	hashcat -m $mode -a $attack $hashes $wordlist >> $logpath/.hashcatlog 2>&1
+	echo "Finished cracking passwords, sending cracked hashes to your phone..."
+	curl -d "Here are the Hashcat results: $(hashcat -m $mode -a $attack $hashes $wordlist --show)" http://$server/$topic >> $logpath/.ntfylog 2>&1
+
+}
+
+function ntfyjohn {
+	read -p "Enter the Hash Format: " format
+	read -p "Enter the Hashfile: " hashes
+	read -p "Enter the Wordlist: " wordlist
+	echo "Starting to crack passwords, I'll text you when I'm done"
+	john --format=$format $hashes --wordlist=$wordlist >> $logpath/.johnlog 2>&1
+	echo "Finished cracking passwords, sending cracked hashes to your phone..."
+	curl -d "Here are the John results: $(john --format=$format $hashes --wordlists=$wordlist --show)" http://$server/$topic >> $logpath/.ntfylog 2>&1
+}
+
+function repeat {
+    read -p "Would you like to continue? (y/n): " cont
+    if [[ $cont == "y" || $cont == "Y" ]]; then
+        echo "Continuing..."
+        sleep .75
+        return 0
+    elif [[ $cont == "n" || $cont == "N" ]]; then
+        echo "Thanks for using ntfyCrack!"
+        sleep 0.75
+        clear
+        repeat=0
+        return 1
+    else
+        echo "Invalid Response, Would you like to continue? (y/n): "
+        return 0
+    fi
+}
+
+function options {
+    optionchoice=0
+    while [[ $optionchoice -ne 3 ]]; do
+	clear
+        asciilogo
+        asciioptions
+        if (($optionchoice == 1)); then
+	    nano $filepath/.ntfycrackconfig.txt
+	    refresh
+	elif (($optionchoice == 2)); then
+	    vim $filepath/.ntfycrackconfig.txt
+	    refresh
+	elif (($optionchoice == 3)); then
+	    return
+	else
+	    echo "Invalid Response, Please make a selection (1-3): "
+	fi
+    done
+
+}
+
+function startdocker {
+    sudo docker run \
+    -v /var/cache/ntfy:/var/cache/ntfy \
+    -v /etc/ntfy:/etc/ntfy \
+    -p 80:80 \
+    -itd \
+    binwiederhier/ntfy \
+    serve \
+    --cache-file /var/cache/ntfy/cache.db > /dev/null 2>&1
+}
+
+function refresh {
+	server="$(grep "Server" $filepath/.ntfycrackconfig.txt | cut -d ' ' -f 2)"
+	topic="$(grep "Topic" $filepath/.ntfycrackconfig.txt | cut -d ' ' -f 2)"
+
+}
+startdocker
+main

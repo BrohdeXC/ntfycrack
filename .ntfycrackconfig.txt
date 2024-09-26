@@ -1,0 +1,5 @@
+# This is the config file for BrohdeXC's ntfy-crack program
+# Make sure to subscribe to the topic on the ntfy app/website
+
+Server: ntfy.sh # Change to whatever your server is
+Topic: topic # Change to whatever your topic is
